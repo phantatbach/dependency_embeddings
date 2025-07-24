@@ -42,10 +42,9 @@ def process_file_for_syn(args):
                             seen.add(nid)
 
                             # Lấy raw_label ('chi_…' hoặc 'pa_…') 
-                            raw_label = next(
-                                (lbl for (h,d), lbl in id2deprel.items() if d == nid),
-                                None
-                            ) or 'UNK'
+                            raw_label = (id2deprel.get((curr, nid))   # child→parent, sẽ có 'pa_…'
+                                        or id2deprel.get((nid, curr))  # parent→child, sẽ có 'chi_…'
+                                        or 'UNK')
 
                             if raw_label.startswith('chi_'):
                                 # Child→dep: strip chi_
