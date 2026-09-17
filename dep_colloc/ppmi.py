@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
+from dep_colloc.utils import VALID_TOKEN_FORMATS
 
 def PPMI_colloc_df(dep_colloc_path,
                    lemma_pos_freq_path,
-                   lemma_pos_deprel_freq_path=None,
                    min_count=None,
                    mode=None):
     
@@ -22,29 +22,13 @@ def PPMI_colloc_df(dep_colloc_path,
                 .astype(int))
 
     # 3) load column frequencies f_j
-    if mode == 'lemma_pos' or mode == 'lemma_pos_init': # If mode = lemma_pos then rows == columns
-        col_freq = (row_freq
-                    .reindex(df.columns) # Re-index to match the index of pos_freq with that of df
-                    .fillna(0)
-                    .astype(int))
-    
-    elif mode == 'lemma_deprel': # If mode == lemma_deprel then the columns would be deprels while rows are lemmas
-        if lemma_pos_deprel_freq_path:
-            deprel_freq = {}
-            with open(lemma_pos_deprel_freq_path, encoding='utf-8') as f:
-                for line in f:
-                    key, val = line.rstrip().split('\t', 1)
-                    deprel_freq[key] = int(val)
-            col_freq = (pd.Series(deprel_freq) 
-                        .reindex(df.columns) # Re-index to match the index of pos_freq with that of df
-                        .fillna(0)
-                        .astype(int))
+    if mode not in VALID_TOKEN_FORMATS:
+        raise ValueError(f"Invalid mode: must be one of {sorted(VALID_TOKEN_FORMATS)}")
 
-        else:
-            raise ValueError("lemma_pos_deprel_freq_path is required for mode 'lemma_deprel'")
-    
-    else:
-        raise ValueError("Invalid mode: must be 'lemma_pos', 'lemma_pos_init', or 'lemma_deprel'")
+    col_freq = (row_freq
+                .reindex(df.columns) # Re-index to match the index of pos_freq with that of df
+                .fillna(0)
+                .astype(int))
 
     # 4) total N
     N = df.values.sum()
